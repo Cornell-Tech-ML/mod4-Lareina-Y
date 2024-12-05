@@ -5,6 +5,17 @@ from typing import List, Tuple
 
 
 def make_pts(N: int) -> List[Tuple[float, float]]:
+    """Generate N random points in 2D space.
+
+    Args:
+    ----
+        N: Number of points to generate.
+
+    Returns:
+    -------
+        A list of N tuples, where each tuple represents a point (x_1, x_2) with random coordinates.
+
+    """
     X = []
     for i in range(N):
         x_1 = random.random()
@@ -21,6 +32,17 @@ class Graph:
 
 
 def simple(N: int) -> Graph:
+    """Generate a dataset where points are classified based on the x_1 coordinate.
+
+    Args:
+    ----
+        N: Number of points to generate.
+
+    Returns:
+    -------
+        A Graph object where points are labeled as 1 if x_1 < 0.5, else 0.
+
+    """
     X = make_pts(N)
     y = []
     for x_1, x_2 in X:
@@ -30,6 +52,17 @@ def simple(N: int) -> Graph:
 
 
 def diag(N: int) -> Graph:
+    """Generate a dataset where points are classified based on the sum of x_1 and x_2 coordinates.
+
+    Args:
+    ----
+        N: Number of points to generate.
+
+    Returns:
+    -------
+        A Graph object where points are labeled as 1 if x_1 + x_2 < 0.5, else 0.
+
+    """
     X = make_pts(N)
     y = []
     for x_1, x_2 in X:
@@ -39,6 +72,17 @@ def diag(N: int) -> Graph:
 
 
 def split(N: int) -> Graph:
+    """Generate a dataset where points are classified based on the x_1 coordinate, with a split at 0.2 and 0.8.
+
+    Args:
+    ----
+        N: Number of points to generate.
+
+    Returns:
+    -------
+        A Graph object where points are labeled as 1 if x_1 < 0.2 or x_1 > 0.8, else 0.
+
+    """
     X = make_pts(N)
     y = []
     for x_1, x_2 in X:
@@ -48,6 +92,17 @@ def split(N: int) -> Graph:
 
 
 def xor(N: int) -> Graph:
+    """Generate a dataset following the XOR pattern.
+
+    Args:
+    ----
+        N: Number of points to generate.
+
+    Returns:
+    -------
+        A Graph object where points are labeled as 1 if x_1 and x_2 satisfy XOR conditions, else 0.
+
+    """
     X = make_pts(N)
     y = []
     for x_1, x_2 in X:
@@ -57,6 +112,17 @@ def xor(N: int) -> Graph:
 
 
 def circle(N: int) -> Graph:
+    """Generate a dataset where points are classified based on their distance from the center of a circle.
+
+    Args:
+    ----
+        N: Number of points to generate.
+
+    Returns:
+    -------
+        A Graph object where points are labeled as 1 if they are outside a radius of 0.1, else 0.
+
+    """
     X = make_pts(N)
     y = []
     for x_1, x_2 in X:
@@ -67,6 +133,18 @@ def circle(N: int) -> Graph:
 
 
 def spiral(N: int) -> Graph:
+    """Generate a dataset where points follow a spiral pattern.
+
+    Args:
+    ----
+        N: Number of points to generate.
+
+    Returns:
+    -------
+        A Graph object where points follow two spirals, with labels 0 or 1 based on the spiral.
+
+    """
+
     def x(t: float) -> float:
         return t * math.cos(t) / 20.0
 
