@@ -22,6 +22,7 @@ Fn = TypeVar("Fn")
 
 
 def njit(fn: Fn, **kwargs: Any) -> Fn:
+    """Applies the Numba `njit` decorator with `inline="always"` and additional keyword arguments."""
     return _njit(inline="always", **kwargs)(fn)  # type: ignore
 
 
@@ -141,6 +142,20 @@ class Conv1dFun(Function):
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
+        """Performs the backward pass of the 1D convolution.
+
+        Args:
+        ----
+        ctx : Context
+            A context object containing saved input and weight tensors from the forward pass.
+        grad_output : Tensor
+            Gradient of the output tensor from the forward pass.
+
+        Returns:
+        -------
+            Gradients with respect to the input tensor and the weight tensor.
+
+        """
         input, weight = ctx.saved_values
         batch, in_channels, w = input.shape
         out_channels, in_channels, kw = weight.shape
@@ -236,7 +251,12 @@ def _tensor_conv2d(
     for pos in prange(out_size):
         out_idx: Index = np.zeros(MAX_DIMS, dtype=np.int32)
         to_index(pos, out_shape, out_idx)
-        batch_idx, out_channel_idx, out_y, out_x = out_idx[0], out_idx[1], out_idx[2], out_idx[3]
+        batch_idx, out_channel_idx, out_y, out_x = (
+            out_idx[0],
+            out_idx[1],
+            out_idx[2],
+            out_idx[3],
+        )
         sum = 0.0
 
         for i in range(in_channels):
@@ -245,7 +265,9 @@ def _tensor_conv2d(
                     input_y = out_y + (j if not reverse else -(kh - 1 - j))
                     input_x = out_x + (k if not reverse else -(kw - 1 - k))
                     if 0 <= input_y < height and 0 <= input_x < width:
-                        input_pos = batch_idx * s10 + i * s11 + input_y * s12 + input_x * s13
+                        input_pos = (
+                            batch_idx * s10 + i * s11 + input_y * s12 + input_x * s13
+                        )
                         weight_pos = out_channel_idx * s20 + i * s21 + j * s22 + k * s23
                         sum += input[input_pos] * weight[weight_pos]
 
@@ -284,6 +306,22 @@ class Conv2dFun(Function):
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
+        """Performs the backward pass of the 2D convolution.
+
+        Args:
+        ----
+        ctx : Context
+            A context object containing saved input and weight tensors from the forward pass.
+        grad_output : Tensor
+            Gradient of the output tensor from the forward pass.
+
+        Returns:
+        -------
+            Gradients with respect to the input tensor and the weight tensor:
+            - grad_input: Tensor of shape (batch, in_channels, h, w).
+            - grad_weight: Tensor of shape (out_channels, in_channels, kh, kw).
+
+        """
         input, weight = ctx.saved_values
         batch, in_channels, h, w = input.shape
         out_channels, in_channels, kh, kw = weight.shape
