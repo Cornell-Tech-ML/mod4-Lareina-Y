@@ -90,23 +90,22 @@ def _tensor_conv1d(
     s1 = input_strides
     s2 = weight_strides
 
-    # TODO: Implement for Task 4.1.
     for pos in prange(out_size):
         out_idx: Index = np.zeros(MAX_DIMS, dtype=np.int32)
         to_index(pos, out_shape, out_idx)
         batch_idx, out_channel_idx, out_pos = out_idx[0], out_idx[1], out_idx[2]
-        conv_sum = 0.0
+        sum = 0.0
 
-        for in_channel_idx in prange(in_channels):
-            for k in range(kw):
-                input_pos = out_pos + (k if not reverse else -(kw - 1 - k))
+        for i in prange(in_channels):
+            for j in range(kw):
+                input_pos = out_pos + (j if not reverse else -(kw - 1 - j))
                 if 0 <= input_pos < width:
-                    input_pos = input_pos * s1[-1] + batch_idx * s1[0] + in_channel_idx * s1[1]
-                    weight_pos = k * s2[-1] + out_channel_idx * s2[0] + in_channel_idx * s2[1]
-                    conv_sum += input[input_pos] * weight[weight_pos]
+                    input_pos = batch_idx * s1[0] + i * s1[1] + input_pos * s1[2]
+                    weight_pos = out_channel_idx * s2[0] + i * s2[1] + j * s2[2]
+                    sum += input[input_pos] * weight[weight_pos]
 
-        out_flat_pos = index_to_position(out_idx, out_strides)
-        out[out_flat_pos] = conv_sum
+        out_p = index_to_position(out_idx, out_strides)
+        out[out_p] = sum
 
 
 tensor_conv1d = njit(_tensor_conv1d, parallel=True)
@@ -234,8 +233,24 @@ def _tensor_conv2d(
     s10, s11, s12, s13 = s1[0], s1[1], s1[2], s1[3]
     s20, s21, s22, s23 = s2[0], s2[1], s2[2], s2[3]
 
-    # TODO: Implement for Task 4.2.
-    raise NotImplementedError("Need to implement for Task 4.2")
+    for pos in prange(out_size):
+        out_idx: Index = np.zeros(MAX_DIMS, dtype=np.int32)
+        to_index(pos, out_shape, out_idx)
+        batch_idx, out_channel_idx, out_y, out_x = out_idx[0], out_idx[1], out_idx[2], out_idx[3]
+        sum = 0.0
+
+        for i in range(in_channels):
+            for j in range(kh):
+                for k in range(kw):
+                    input_y = out_y + (j if not reverse else -(kh - 1 - j))
+                    input_x = out_x + (k if not reverse else -(kw - 1 - k))
+                    if 0 <= input_y < height and 0 <= input_x < width:
+                        input_pos = batch_idx * s10 + i * s11 + input_y * s12 + input_x * s13
+                        weight_pos = out_channel_idx * s20 + i * s21 + j * s22 + k * s23
+                        sum += input[input_pos] * weight[weight_pos]
+
+        out_pos = index_to_position(out_idx, out_strides)
+        out[out_pos] = sum
 
 
 tensor_conv2d = njit(_tensor_conv2d, parallel=True, fastmath=True)
